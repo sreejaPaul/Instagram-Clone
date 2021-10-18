@@ -1,0 +1,31 @@
+.stories{
+    display: flex;
+    background-color: white;
+    overflow: scroll;
+    overflow-y: hidden;
+    overflow-x:scroll;
+    margin:10px;
+    margin-right: 25px;
+    height: 110px;
+}
+
+::-webkit-scrollbar {
+    height: 7px;
+    width: 5px;
+    border-radius: 5px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+  }
+   
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888; 
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+  }

@@ -1,0 +1,28 @@
+.storyimage{
+    border-radius: 50%;
+    height: 55px;
+    width:55px;
+    padding: 2px;
+    border: 2px solid  #F56040;
+    object-fit: contain;
+    cursor: pointer;
+}
+.storyname{
+    font-size: smaller;
+    width: 60px;
+    margin-top: 5px;
+    margin-left: 4px;
+    white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: normal;
+}
+.story{
+    margin:5px;
+    margin-left: 20px;
+    transition: all 0s ease-in-out;
+}
+.story :hover 
+{ 
+    transform: scale(1.1); 
+}
