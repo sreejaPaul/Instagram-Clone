@@ -11,7 +11,7 @@ Build with React JS, Firebase and Firestore. This web app has these following fe
 5. Logged user can comment on every available posts after clicking the comment button.
 6. Logged user can delete their own comments or own posts.
 
-User data and their order informtions are stored and fetched from Firestore database.
+User data and their post detail are stored and fetched from Firestore database.
 
 ## Watch Here
 Live Demo - [Click Here](https://instagram-clone-4e7ba.web.app/)
