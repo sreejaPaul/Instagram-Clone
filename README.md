@@ -1,6 +1,7 @@
 # Instagram - Clone
 
-![output](https://user-images.githubusercontent.com/88406499/137766651-14871b93-0206-458d-9ca9-ce533fa17784.png)
+![output](https://user-images.githubusercontent.com/88406499/137767845-436c957a-47d0-47b5-87f3-b4635ae5403e.png)
+
 
 Build with React JS, Firebase and Firestore. This web app has these following features:
 1. User can sign up and sign in easily. User authentication is done using firebase.
