@@ -6,11 +6,13 @@ import './TextUpload.css';
 import Picker from 'emoji-picker-react';
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
+import {useHistory} from 'react-router-dom';
 
 function TextUpload({ username }) {
     const [inputStr, setInputStr] = useState('');
     const [showPicker, setShowPicker] = useState(false);
     const [caption,setCaption] = useState('');
+    const history = useHistory();
 
     const onEmojiClick = (event, emojiObject) => {
         setInputStr(prevInput => prevInput + emojiObject.emoji);
@@ -32,7 +34,7 @@ function TextUpload({ username }) {
             setCaption("");
             document.body.scrollTop = 0;
             document.documentElement.scrollTop = 0;
-
+            history.push("/")
         }
     }
 

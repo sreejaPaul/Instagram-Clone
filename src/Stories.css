@@ -29,3 +29,9 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #555; 
   }
+
+  
+.dark-mode{
+  background-color: rgb(31, 27, 27);
+  color: rgb(211, 203, 203);
+}

@@ -91,6 +91,7 @@
 .post__username{
     cursor: pointer;
     flex: 1;
+    padding: 5px
 }
 .comment_container{
     display: flex;
@@ -152,4 +153,10 @@
   .comText{
       font-size: medium;
       font-weight: normal;
+  }
+
+  
+.dark-mode{
+    background-color: rgb(31, 27, 27);
+    color: rgb(41, 38, 38);
   }

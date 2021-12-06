@@ -6,12 +6,15 @@ import './ImageUpload.css';
 import InputEmoji from 'react-input-emoji';
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
+import useCustomNotificationHandler from './useCustomNotificationHandler';
+import {useHistory} from 'react-router-dom';
 
 function ImageUpload({username}) {
     const [caption,setCaption] = useState("");
     const [image,setImage] = useState(null);
     const [progress,setProgress] = useState(0);
-
+    const history = useHistory();
+    const { setMessage, setMessageColor, CustomNotification } = useCustomNotificationHandler(1000);
 
     const handlechange = (e)=>{
         // this will pick the FIRST file selected (to avoid selecting many)
@@ -22,6 +25,8 @@ function ImageUpload({username}) {
     const handleUpload = ()=>{
         if(caption!=="" && image!==null){
         const uploadTask = storage.ref(`images/${image.name}`).put(image);
+        setMessage("Uploading...PLease Wait");
+        setMessageColor("info")
         uploadTask.on(
             "state_changed",
             (snapshot) => {
@@ -53,6 +58,7 @@ function ImageUpload({username}) {
                 })
             }
         )
+        
         }
     }
     return (
@@ -79,6 +85,7 @@ function ImageUpload({username}) {
                     </div>
                 )}
             </Popup>}
+            <CustomNotification />
         </div>
     )
 }

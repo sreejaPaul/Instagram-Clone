@@ -3,7 +3,7 @@ import faker from 'faker';
 import Story from './Story';
 import './Stories.css';
 
-function Stories() {
+function Stories({dark}) {
     const [suggestions,setSuggestions] = useState([]);
     
     useEffect(()=>{
@@ -15,7 +15,7 @@ function Stories() {
         setSuggestions(suggestions);
     },[])
     return (
-        <div className='stories'>
+        <div className= {dark ? "stories dark-mode" : "stories"}>
             {suggestions.map((profile) => (
                 <Story key={profile.id} img={profile.avatar} username={profile.username}  />
             ))}

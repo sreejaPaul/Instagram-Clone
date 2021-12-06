@@ -11,14 +11,16 @@ import { faHeart, faComment, faBookmark } from '@fortawesome/free-solid-svg-icon
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
 import { doc, deleteDoc, setDoc } from "firebase/firestore";
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
+import useCustomNotificationHandler from './useCustomNotificationHandler';
 
-function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,text }) {
+function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,text ,dark}) {
     const [comments, setComments] = useState([]);
     const [comment, setComment] = useState('');
     const [display, setDisplay] = useState("none");
     const [likes, setLikes] = useState([]);
     const [hasliked, setHasLiked] = useState(false);
+    const { setMessage, setMessageColor, CustomNotification } = useCustomNotificationHandler(1000);
     const history = useHistory();
 
     useEffect(() => {
@@ -61,12 +63,13 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         });
         setComment("");
-        history.push("/");
-
+        
 
     }
 
     const deletePost = (postId) => {
+        setMessage("Deleting Your Post")
+        setMessageColor("warning");
         // event.preventDefault();
 
         db.collection("posts").doc(postId).delete().then(function () {
@@ -91,18 +94,20 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
             // Uh-oh, an error occurred!
             console.log(error.message);
         });
-        history.push("/");
     }
     const deleteTextPost = ()=>{
+        setMessage("Deleting Your Post")
+        setMessageColor("warning");
         db.collection("posts").doc(postId).delete().then(function () {
             console.log("Document successfully deleted!");
         }).catch(function (error) {
             console.log("Error removing document: ", error);
         });
-        history.push("/");
     }
 
     const deleteComment = (commentToDel) => {
+        setMessage("Deleting Your Comment")
+        setMessageColor("warning");
         db.collection("posts")
             .doc(postId)
             .collection("comments")
@@ -113,7 +118,6 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                     doc.ref.delete();
                 });
             });
-            history.push("/");
 
     }
 
@@ -137,38 +141,71 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
     const commentClick = () => {
         if (display === "none")
             setDisplay("block");
-        else if (display === "block")
+        else if (display === "block"){
             setDisplay("none");
-            history.push("/");
+        }
+    }
+    const noUserDelete = ()=>{
+        setMessage("Login/Signin First To Continue");
+        setMessageColor("error");
+    }
+    const otherUserDelete = ()=>{
+        setMessage("User Can Only Delete Their Own Posts");
+        setMessageColor("error");
     }
     return (
-        <div className="post">
+        <div className={dark ? "post dark-mode" : "post"}>
             <div className="post_header">
-                <Avatar className="post_avatar" alt={user?.displayName} />
-                <div className="post__username"><h3>{username}</h3></div>
+                <div style={{flex: "1"}}>
+                    <Link to= {"/" + username} style={{textDecoration:"none",color: "inherit"}}>
+                    <>
+                    <div style={{float:"left"}}>
+                        <Avatar className="post_avatar" alt={user?.displayName} />
+                        </div>
+                        <div className="post__username"><h3>{username}</h3></div>
+                    </>
+                    </Link>
+                </div>
+                <div>
                 {
-                    (user && username === auth.currentUser.displayName && (text===undefined)) ?
-                    <div className="delete__Post">
-                        {/* This is where the 3 dots menu appear to delete posts */}
-                        <MenuPopupState
-                            datatopass={postId}
-                            functiontopass={deletePost}
-                            labeltopass={"Delete this post"}
-                        />
-                        
-                    </div>
+                    (user)?
+                    ((username === auth.currentUser?.displayName) ?
+                    ((text==="") ?
+                       <div className="delete__Post">
+                           {/* This is where the 3 dots menu appear to delete posts */}
+                           <MenuPopupState
+                               datatopass={postId}
+                               functiontopass={deletePost}
+                               labeltopass={"Delete this post"}
+                           />
+                           
+                       </div>
+                       :
+                       <div className="delete__Post">
+                           {/* This is where the 3 dots menu appear to delete posts */}
+                           <MenuPopupState
+                               datatopass={postId}
+                               functiontopass={deleteTextPost}
+                               labeltopass={"Delete This Text Post"}
+                           />
+                           
+                       </div>)
+                   :<MenuPopupState
+                        datatopass={postId}
+                        functiontopass={otherUserDelete}
+                        labeltopass={"Delete this post"}
+                        user
+                    />)
                     :
-                    <div className="delete__Post">
-                        {/* This is where the 3 dots menu appear to delete posts */}
-                        <MenuPopupState
-                            datatopass={postId}
-                            functiontopass={deleteTextPost}
-                            labeltopass={"Delete this post"}
-                        />
-                        
-                    </div>
+                    <MenuPopupState
+                                datatopass={postId}
+                                functiontopass={noUserDelete}
+                                labeltopass={"Delete this post"}
+                                user
+                            />
 
                 }
+                </div>
             </div>
 
 
@@ -199,7 +236,7 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                 <div>
                     {(!user) ?
                         <Popup trigger={
-                            <button className="heart" >
+                            <button className={dark ? "heart dark-mode" : "heart"}>
                                 <FontAwesomeIcon icon={faHeart} size="2x" style={{ color: "gray" }} className="com" title="Like" />
                             </button>} modal>
                             {close => (
@@ -214,13 +251,13 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                         :
                         (hasliked) ?
                             <span>
-                                <button onClick={likepost} className="heart" >
+                                <button onClick={likepost} className={dark ? "heart dark-mode" : "heart"} >
                                     <FontAwesomeIcon icon={faHeart} size="2x" style={{ color: "red" }} className="com" title="Like" />
                                 </button>
                             </span>
                             :
                             <span>
-                                <button onClick={likepost} className="heart" >
+                                <button onClick={likepost} className={dark ? "heart dark-mode" : "heart"}>
                                     <FontAwesomeIcon icon={faHeart} size="2x" style={{ color: "gray" }} className="com" title="Like" />
                                 </button>
                             </span>
@@ -228,13 +265,8 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                     }
                 </div>
                 <div>
-                    <button className="heart" onClick={commentClick}>
+                    <button className={dark ? "heart dark-mode" : "heart"} onClick={commentClick}>
                         <FontAwesomeIcon icon={faComment} size="2x" style={{ color: "gray" }} className="com" title="Comment" />
-                    </button>
-                </div>
-                <div>
-                    <button className="heart">
-                        <FontAwesomeIcon icon={faBookmark} size="2x" style={{ color: "gray" }} className="com" />
                     </button>
                 </div>
             </div>
@@ -288,7 +320,7 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                 {user && (
                     <form className="post__commentBox">
 
-                        <InputEmoji value={comment} onChange={setComment} placeholder={"Add a comment..."} />
+                        <InputEmoji value={comment} onChange={setComment} placeholder={"Add a comment and click post..."} />
                         <button
                             className="post__button" type="submit" onClick={postComment}
                         >
@@ -298,7 +330,7 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                     </form>
                 )}
             </div>
-
+            <CustomNotification />
         </div>
     )
 }
