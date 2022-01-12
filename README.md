@@ -1,6 +1,6 @@
 # Instagram - Clone
+![InstagramClone](https://user-images.githubusercontent.com/88406499/149124115-3432eae0-84ec-46c4-818a-c0fb9b70b986.png)
 
-![output](https://user-images.githubusercontent.com/88406499/137767845-436c957a-47d0-47b5-87f3-b4635ae5403e.png)
 
 
 Build with React JS, Firebase and Firestore. This web app has these following features:
