@@ -13,8 +13,21 @@ import 'reactjs-popup/dist/index.css';
 import { doc, deleteDoc, setDoc } from "firebase/firestore";
 import { Link, useHistory } from 'react-router-dom';
 import useCustomNotificationHandler from './useCustomNotificationHandler';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Slide from '@material-ui/core/Slide';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import Picker from 'emoji-picker-react';
 
-function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,text ,dark}) {
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
+
+function Post({ postId, user, imageUrl, imagename, username, caption, timestamp, text, dark }) {
     const [comments, setComments] = useState([]);
     const [comment, setComment] = useState('');
     const [display, setDisplay] = useState("none");
@@ -22,6 +35,12 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
     const [hasliked, setHasLiked] = useState(false);
     const { setMessage, setMessageColor, CustomNotification } = useCustomNotificationHandler(1000);
     const history = useHistory();
+    const [open, setOpen] = useState(false);
+    const [editCaption, setEditCaption] = useState("");
+    const [showPicker, setShowPicker] = useState(false);
+    const [commentOpen, setCommentOpen] = useState(false);
+    const [editCommentSt, setEditComment] = useState("");
+    const [idOfComment, setIdOfComment] = useState("");
 
     useEffect(() => {
         let unsubscribe;
@@ -63,7 +82,6 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         });
         setComment("");
-        
 
     }
 
@@ -95,7 +113,7 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
             console.log(error.message);
         });
     }
-    const deleteTextPost = ()=>{
+    const deleteTextPost = () => {
         setMessage("Deleting Your Post")
         setMessageColor("warning");
         db.collection("posts").doc(postId).delete().then(function () {
@@ -136,78 +154,186 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
             }
         }
 
-
     }
     const commentClick = () => {
         if (display === "none")
             setDisplay("block");
-        else if (display === "block"){
+        else if (display === "block") {
             setDisplay("none");
         }
     }
-    const noUserDelete = ()=>{
+    const noUserDelete = () => {
         setMessage("Login/Signin First To Continue");
         setMessageColor("error");
     }
-    const otherUserDelete = ()=>{
+    const noUserEditPost = () => {
+        setMessage("Login/Signin First To Continue");
+        setMessageColor("error");
+    }
+    const otherUserDelete = () => {
         setMessage("User Can Only Delete Their Own Posts");
         setMessageColor("error");
     }
+    const editPost = (postId) => {
+
+        db.collection("posts")
+            .doc(postId)
+            .get() //promise
+            .then(function (doc) {
+                console.log(doc)
+                if (doc.exists) {
+                    //gives full object of user
+                    console.log("Document data:", doc.data());
+                    //gives specific field 
+                    let caption = doc.data().caption;
+                    setEditCaption(caption);
+
+                } else {
+                    // doc.data() will be undefined in this case
+                    console.log("No such document!");
+                }
+            }).catch(function (error) {
+                console.log("Error getting document:", error);
+            });
+        handleClickOpen();
+
+    }
+    const onEmojiClick = (event, emojiObject) => {
+        setEditCaption(prevInput => prevInput + emojiObject.emoji);
+        setShowPicker(false);
+    };
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+    const handleRePost = () => {
+        db.collection("posts")
+            .doc(postId)
+            .update({
+                caption: editCaption
+            })
+            .then((res) => {
+                setMessage("Post updated successfully");
+                setMessageColor("success");
+            })
+        handleClose();
+    }
+
+    const editComment = (commentToDel) => {
+        
+        db.collection("posts")
+        .doc(postId)
+        .collection("comments")
+        .where("timestamp", "==", commentToDel)
+        .get()
+        .then(function (doc) {
+            if (doc.docs[0].exists) {
+                //gives full object of user
+                console.log("Document data:", doc.docs[0].data());
+                //gives specific field 
+                setIdOfComment(doc.docs[0].id)
+                let commentPost = doc.docs[0].data().text;
+                setEditComment(commentPost);
+
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+            }
+        }).catch(function (error) {
+            console.log("Error getting document:", error);
+        });
+        setCommentOpen(true);
+    }
+    const onCommentEmojiClick = (event, emojiObject) => {
+        setEditComment(prevInput => prevInput + emojiObject.emoji);
+        setShowPicker(false);
+    };
+    const handleCommentClose = ()=>{
+        setCommentOpen(false);
+    }
+    
+    const handleRePostComment = ()=>{
+
+        db.collection("posts")
+            .doc(postId)
+            .collection("comments")
+            .doc(idOfComment)
+            .update({
+                text: editCommentSt,
+            })
+            .then((res) => {
+                setMessage("Comment updated successfully");
+                setMessageColor("success");
+            })
+        handleCommentClose();
+    }
+
     return (
         <div className={dark ? "post dark-mode" : "post"}>
             <div className="post_header">
-                <div style={{flex: "1"}}>
-                    <Link to= {"/" + username} style={{textDecoration:"none",color: "inherit"}}>
-                    <>
-                    <div style={{float:"left"}}>
-                        <Avatar className="post_avatar" alt={user?.displayName} />
-                        </div>
-                        <div className="post__username"><h3>{username}</h3></div>
-                    </>
+                <div style={{ flex: "1" }}>
+                    <Link to={"/" + username} style={{ textDecoration: "none", color: "inherit" }}>
+                        <>
+                            <div style={{ float: "left" }}>
+                                <Avatar className="post_avatar" alt={user?.displayName} />
+                            </div>
+                            <div className="post__username"><h3>{username}</h3></div>
+                        </>
                     </Link>
                 </div>
                 <div>
-                {
-                    (user)?
-                    ((username === auth.currentUser?.displayName) ?
-                    ((text==="") ?
-                       <div className="delete__Post">
-                           {/* This is where the 3 dots menu appear to delete posts */}
-                           <MenuPopupState
-                               datatopass={postId}
-                               functiontopass={deletePost}
-                               labeltopass={"Delete this post"}
-                           />
-                           
-                       </div>
-                       :
-                       <div className="delete__Post">
-                           {/* This is where the 3 dots menu appear to delete posts */}
-                           <MenuPopupState
-                               datatopass={postId}
-                               functiontopass={deleteTextPost}
-                               labeltopass={"Delete This Text Post"}
-                           />
-                           
-                       </div>)
-                   :<MenuPopupState
-                        datatopass={postId}
-                        functiontopass={otherUserDelete}
-                        labeltopass={"Delete this post"}
-                        user
-                    />)
-                    :
-                    <MenuPopupState
+                    {
+                        (user) ?
+                            ((username === auth.currentUser?.displayName) ?
+                                ((text === "") ?
+                                    <div className="delete__Post">
+                                        {/* This is where the 3 dots menu appear to delete posts */}
+                                        <MenuPopupState
+                                            datatopass={postId}
+                                            functiontopass={deletePost}
+                                            labeltopass={"Delete this post"}
+                                            editDatatopass={postId}
+                                            editFunctionToPass={editPost}
+                                            editLabelToPass={"Edit Post Caption"}
+                                        />
+
+                                    </div>
+                                    :
+                                    <div className="delete__Post">
+                                        {/* This is where the 3 dots menu appear to delete posts */}
+                                        <MenuPopupState
+                                            datatopass={postId}
+                                            functiontopass={deleteTextPost}
+                                            labeltopass={"Delete This Text Post"}
+                                            editDatatopass={postId}
+                                            editFunctionToPass={editPost}
+                                            editLabelToPass={"Edit Post Caption"}
+                                        />
+
+                                    </div>) : "")
+                            //    :<MenuPopupState
+                            //         datatopass={postId}
+                            //         functiontopass={otherUserDelete}
+                            //         labeltopass={"Delete this post"}
+                            //         user
+                            //     />)
+                            :
+                            <MenuPopupState
                                 datatopass={postId}
                                 functiontopass={noUserDelete}
                                 labeltopass={"Delete this post"}
+                                editDatatopass={postId}
+                                editFunctionToPass={noUserEditPost}
+                                editLabelToPass={"Edit Post Caption"}
                                 user
                             />
 
-                }
+                    }
                 </div>
             </div>
-
 
             <div className="post__imgcontainer">
                 {
@@ -221,14 +347,14 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                         )
                         :
                         (imageUrl.includes("text")) ?
-                        (<div className="text_post">
-                            {text}
-                        </div>)
-                        :
-                        (
-                            // If not video,then image
-                            <img src={imageUrl} alt="" className="post_image" />
-                        )
+                            (<div className="text_post">
+                                {text}
+                            </div>)
+                            :
+                            (
+                                // If not video,then image
+                                <img src={imageUrl} alt="" className="post_image" />
+                            )
                 }
 
             </div>
@@ -270,7 +396,7 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                     </button>
                 </div>
             </div>
-            <p className="noLike">{(likes.length>0)? <strong>{likes.length + ((likes.length >1 )?" Likes" : " Like")}</strong>: ""}</p>
+            <p className="noLike">{(likes.length > 0) ? <strong>{likes.length + ((likes.length > 1) ? " Likes" : " Like")}</strong> : ""}</p>
             <h4 className="post_text">
                 <strong>{username}</strong> {caption}
                 <span className="time">
@@ -281,14 +407,14 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
             </h4>
             <div className="full_comment" style={{ display: display }}>
                 <div className="post__comments">
-                    {comments.map((comment,index) => (
-                        <div className="comment_container" key={index+comment.username}>
+                    {comments.map((comment, index) => (
+                        <div className="comment_container" key={index + comment.username}>
                             <div className="comment">
                                 <p >
                                     <strong >
-                                        {comment.username }:
+                                        {comment.username}:
                                     </strong>
-                                    <span className="comText">{" " +comment.text}</span>
+                                    <span className="comText">{" " + comment.text}</span>
                                     <span className="time">
                                         <Moment fromNow>
                                             {comment.timestamp?.toDate()}
@@ -307,13 +433,15 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                                             datatopass={comment.timestamp}
                                             functiontopass={deleteComment}
                                             labeltopass={"Delete this comment"}
+                                            editDatatopass={comment.timestamp}
+                                            editFunctionToPass={editComment}
+                                            editLabelToPass={"Edit Comment"}
                                         />
                                     </div>
                                 }
                             </div>
 
                         </div>
-
 
                     ))}
                 </div>
@@ -331,6 +459,89 @@ function Post({ postId, user, imageUrl, imagename, username, caption, timestamp,
                 )}
             </div>
             <CustomNotification />
+            {/* post edit */}
+            <Dialog
+                open={open}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-slide-title"
+                aria-describedby="alert-dialog-slide-description"
+
+            >
+                <DialogTitle id="alert-dialog-slide-title">{"Edit Post Caption"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-slide-description">
+                        {/* <InputEmoji value={editCaption} onChange={setEditCaption} placeholder={"Edit Post here..."} height={40} style={{position:"absolute"}}/> */}
+                        <div className="picker-container">
+                            <textarea
+                                className="input-style"
+                                value={editCaption}
+                                onChange={e => setEditCaption(e.target.value)}
+                                placeholder="Edit Your Post Here..."
+                            />
+                            <img
+                                className="emoji-icon"
+                                src="https://icons.getbootstrap.com/assets/icons/emoji-smile.svg"
+                                onClick={() => setShowPicker(val => !val)} alt="" />
+                            {showPicker && <Picker
+                                pickerStyle={{ width: '100%' }}
+                                onEmojiClick={onEmojiClick} />}
+
+                        </div>
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleRePost} color="primary">
+                        Post Changes
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* comment edit */}
+            <Dialog
+                open={commentOpen}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleCommentClose}
+                aria-labelledby="alert-dialog-slide-title"
+                aria-describedby="alert-dialog-slide-description"
+
+            >
+                <DialogTitle id="alert-dialog-slide-title">{"Edit Comment"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-slide-description">
+                        {/* <InputEmoji value={editCaption} onChange={setEditCaption} placeholder={"Edit Post here..."} height={40} style={{position:"absolute"}}/> */}
+                        <div className="picker-container">
+                            <textarea
+                                className="input-style"
+                                value={editCommentSt}
+                                onChange={e => setEditComment(e.target.value)}
+                                placeholder="Edit Your Post Here..."
+                            />
+                            <img
+                                className="emoji-icon"
+                                src="https://icons.getbootstrap.com/assets/icons/emoji-smile.svg"
+                                onClick={() => setShowPicker(val => !val)} alt="" />
+                            {showPicker && <Picker
+                                pickerStyle={{ width: '100%' }}
+                                onEmojiClick={onCommentEmojiClick} />}
+
+                        </div>
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCommentClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleRePostComment} color="primary">
+                        Post Changes
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     )
 }
