@@ -1,4 +1,4 @@
-# Instagram - Clone
+# Instagram Clone
 ![InstagramClone](https://user-images.githubusercontent.com/88406499/149124115-3432eae0-84ec-46c4-818a-c0fb9b70b986.png)
 
 
